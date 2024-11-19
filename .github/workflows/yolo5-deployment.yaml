@@ -2,8 +2,9 @@ name: Yolo5 Microservice Deployment
 
 on:
   push:
-    paths:
-      - 'yolo5/**'
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
@@ -11,14 +12,24 @@ jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repo code
-        uses: actions/checkout@v2
 
-      - name: Build and push image
-        run: |
-          cd yolo5
-          
-          # TODO your implementation here....          
+      - name: Login to docker
+        env: 
+          DOCKER_USR: ${{secrets.DOCKER_USR}}
+          DOCKER_PWD: ${{secrets.DOCKER_PWD}}
+        run: echo "$DOCKER_PWD" | docker login --username $DOCKER_USR --password-stdin
+
+      - name: Checkout the repo code
+        uses: actions/checkout@v3
+        
+      - name: Docker Build
+        run: docker build -t /yolo5 
+
+      - name: Docker Tag
+        run: docker tag yolov5 keretdodor/yolov5
+      
+      - name: Docker Push
+        run: docker push keretdodor/yolov5:latest
 
   Deploy:
     runs-on: ubuntu-latest
